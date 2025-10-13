@@ -6,7 +6,6 @@
 **Coverage: 100% CCNA Topics | Difficulty: Advanced**
 
 #### **📊 Complete Coverage:**
-```markdown
 | CCNA Topic | Coverage | Implementation Details |
 |------------|----------|----------------------|
 | VLANs & Trunking | ✅ 100% | 7 medical VLANs with voice VLAN |
@@ -21,10 +20,8 @@
 | Port Security | ✅ 100% | Physical access control |
 | Monitoring | ✅ 100% | Syslog, SNMP, audit trails |
 | IPv4 Subnetting | ✅ 100% | VLSM for efficient allocation |
-```
 
 #### **🏥 Department Structure:**
-```markdown
 | Department | VLAN | Subnet | Special Requirements |
 |------------|------|--------|---------------------|
 | Medical Servers | 10 | 10.10.10.0/24 | HIPAA, redundancy |
@@ -34,7 +31,6 @@
 | Guest WiFi | 50 | 10.10.50.0/24 | Internet isolation |
 | Administration | 60 | 10.10.60.0/24 | Business operations |
 | Pharmacy | 70 | 10.10.70.0/24 | Inventory systems |
-```
 
 ---
 
@@ -42,7 +38,6 @@
 **Coverage: 98% CCNA Topics | Difficulty: Advanced**
 
 #### **📊 Coverage Analysis:**
-```markdown
 | CCNA Topic | Coverage | Implementation Details |
 |------------|----------|----------------------|
 | VLANs & Trunking | ✅ 100% | 6 secure banking zones |
@@ -56,10 +51,8 @@
 | Monitoring | ✅ 100% | Financial audit compliance |
 | Wireless | ✅ 90% | Limited guest access only |
 | QoS | ✅ 80% | Transaction priority |
-```
 
 #### **🏦 Banking Structure:**
-```markdown
 | Zone | VLAN | Security Level | Purpose |
 |------|------|----------------|---------|
 | Core Banking | 10 | CRITICAL | Transaction processing |
@@ -68,7 +61,6 @@
 | Management | 40 | MEDIUM | Administrative staff |
 | Guest Access | 50 | LOW | Public internet only |
 | Security | 60 | HIGH | Surveillance systems |
-```
 
 ---
 
@@ -76,7 +68,7 @@
 **Coverage: 95% CCNA Topics | Difficulty: Advanced**
 
 #### **📊 Coverage Analysis:**
-```markdown
+
 | CCNA Topic | Coverage | Implementation Details |
 |------------|----------|----------------------|
 | VLANs & Trunking | ✅ 100% | Multi-building segmentation |
@@ -90,10 +82,9 @@
 | QoS | ✅ 80% | Educational priority |
 | Monitoring | ✅ 90% | Large network management |
 | IPv6 | ✅ 70% | Dual-stack implementation |
-```
+
 
 #### **🎓 Campus Layout:**
-```markdown
 | Building | VLAN Range | User Type | Special Requirements |
 |----------|------------|-----------|---------------------|
 | Administration | 10-19 | Staff | High security |
@@ -102,7 +93,6 @@
 | Computer Labs | 40-49 | Students | Academic software |
 | Faculty | 50-59 | Professors | Research data access |
 | Public WiFi | 60-69 | Everyone | BYOD support |
-```
 
 ---
 
@@ -110,7 +100,6 @@
 **Coverage: 92% CCNA Topics | Difficulty: Intermediate**
 
 #### **📊 Coverage Analysis:**
-```markdown
 | CCNA Topic | Coverage | Implementation Details |
 |------------|----------|----------------------|
 | VLANs & Trunking | ✅ 100% | Department segmentation |
@@ -123,10 +112,8 @@
 | Wireless | ✅ 100% | Employee & guest WiFi |
 | QoS | ✅ 85% | Video conferencing |
 | Monitoring | ✅ 90% | Business continuity |
-```
 
 #### **🏢 Office Structure:**
-```markdown
 | Department | VLAN | Business Criticality |
 |------------|------|---------------------|
 | Executive | 10 | CRITICAL | Board operations |
@@ -135,7 +122,6 @@
 | Sales | 40 | MEDIUM | Customer relations |
 | IT | 50 | CRITICAL | Network management |
 | Conference | 60 | MEDIUM | Meeting facilities |
-```
 
 ---
 
@@ -143,7 +129,6 @@
 **Coverage: 90% CCNA Topics | Difficulty: Intermediate**
 
 #### **📊 Coverage Analysis:**
-```markdown
 | CCNA Topic | Coverage | Implementation Details |
 |------------|----------|----------------------|
 | VLANs & Trunking | ✅ 100% | Industrial zone segmentation |
@@ -156,10 +141,8 @@
 | Wireless | ✅ 85% | Industrial WiFi |
 | QoS | ✅ 95% | Real-time control priority |
 | Monitoring | ✅ 100% | Production monitoring |
-```
 
 #### **🏭 Plant Layout:**
-```markdown
 | Zone | VLAN | Devices | Criticality |
 |------|------|---------|------------|
 | Control Room | 10 | SCADA, HMI | CRITICAL |
@@ -168,7 +151,6 @@
 | Warehouse | 40 | Inventory systems | MEDIUM |
 | Office | 50 | Admin computers | MEDIUM |
 | Maintenance | 60 | Vendor access | LOW |
-```
 
 ---
 
@@ -176,7 +158,6 @@
 **Coverage: 88% CCNA Topics | Difficulty: Intermediate**
 
 #### **📊 Coverage Analysis:**
-```markdown
 | CCNA Topic | Coverage | Implementation Details |
 |------------|----------|----------------------|
 | VLANs & Trunking | ✅ 100% | Service segmentation |
@@ -190,10 +171,8 @@
 | QoS | ✅ 85% | Guest experience priority |
 | Port Security | ✅ 95% | Room port protection |
 | Monitoring | ✅ 85% | Service availability |
-```
 
 #### **🏨 Hotel Services:**
-```markdown
 | Service | VLAN | Purpose | Security |
 |---------|------|---------|----------|
 | Management | 10 | Hotel operations | HIGH |
@@ -202,13 +181,11 @@
 | Surveillance | 40 | Security cameras | HIGH |
 | Conference | 50 | Event facilities | MEDIUM |
 | Back Office | 60 | Staff operations | MEDIUM |
-```
 
 ---
 
 ## 📊 **COMPREHENSIVE COMPARISON TABLE**
 
-```markdown
 | Project | CCNA Coverage | Difficulty | Security Depth | Routing Complexity | Wireless | Real-world Value |
 |---------|---------------|------------|----------------|-------------------|----------|-----------------|
 | Hospital | 100% | Advanced | 🔴 CRITICAL | 🟡 MEDIUM | 🟡 MEDIUM | 🔴 HIGH |
@@ -217,14 +194,12 @@
 | Corporate | 92% | Intermediate | 🟡 MEDIUM | 🟡 MEDIUM | 🟡 MEDIUM | 🟡 MEDIUM |
 | Manufacturing | 90% | Intermediate | 🟡 MEDIUM | 🟡 MEDIUM | 🟡 MEDIUM | 🟡 MEDIUM |
 | Hotel | 88% | Intermediate | 🟡 MEDIUM | 🔴 LOW | 🔴 HIGH | 🟡 MEDIUM |
-```
 
 ---
 
 ## 🗓️ **MASTERY ROADMAP - 12 Weeks Plan**
 
 ### **Phase 1: Foundation (Weeks 1-4)**
-```markdown
 Week 1-2: Bank Network
   - IP addressing & subnetting
   - Basic VLANs & security
@@ -234,10 +209,8 @@ Week 3-4: Corporate Office
   - Department segmentation
   - Inter-VLAN routing
   - Enterprise security
-```
 
 ### **Phase 2: Intermediate (Weeks 5-8)**
-```markdown
 Week 5-6: Hotel Network
   - Guest services focus
   - Wireless implementation
@@ -247,10 +220,8 @@ Week 7-8: Manufacturing Plant
   - Industrial networking
   - QoS for real-time systems
   - IoT device management
-```
 
 ### **Phase 3: Advanced (Weeks 9-12)**
-```markdown
 Week 9-10: University Campus
   - Large-scale routing
   - Multi-building design
@@ -260,7 +231,6 @@ Week 11-12: Hospital Network
   - Critical infrastructure
   - Advanced security
   - Final integration mastery
-```
 
 ---
 
