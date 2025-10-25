@@ -125,7 +125,7 @@ Services:
 
 ---
 
-**Maintained by:** Sai Aik Kwan | **[Business Network Simulations](https://github.com/username)**  
+**Maintained by:** Sai Aik Kwan | **[Rick's Home Lab](https://github.com/rick-homelab)**  
 *Demonstrating practical network engineering expertise through business-focused solutions.*
 
 *"Building networks that solve real business challenges with appropriate technical solutions."*
