@@ -1,7 +1,7 @@
 # **Business Network Simulations Portfolio**
 
 **Portfolio Scope:** 8 Business-Focused Network Solutions  
-**Status:** Active Development | **Last Updated:** YYYY-MM-DD
+**Status:** Active Development 🟢 | **Last Updated:** YYYY-MM-DD
 
 ## **Table of Contents**
 - [Portfolio Overview](#portfolio-overview)
