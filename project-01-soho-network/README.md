@@ -4,6 +4,7 @@
 
 ## **Table of Contents**
 - [Objective](#objective)
+- [Business Context](#business-context)
 - [Quick Start](#quick-start)
 - [Topology & Design](#topology--design)
 - [Configuration](#configuration)
@@ -15,14 +16,21 @@
 - [Learning Outcomes](#learning-outcomes)
 
 ## **Objective**
-> Implement a secure, segmented small office network that separates business operations from guest access while maintaining internet connectivity for all users.
+> Implement a secure, segmented network for a growing web design studio that separates business operations from client access while protecting cloud-based assets.
 
 **Key Goals:**
 - [ ] Create VLAN segmentation for business and guest traffic
 - [ ] Configure router-on-a-stick for inter-VLAN routing
 - [ ] Implement basic port security on switch ports
-- [ ] Set up multi-SSID wireless with VLAN separation
-- [ ] Establish proper security policies using ACLs
+- [ ] Set up multi-SSID wireless with guest isolation
+- [ ] Establish security policies to protect business systems
+
+## **Business Context**
+> - **Company:** PixelForge Web Studio - 6-person bootstrapped startup planning to grow to 10  
+> - **Office Layout:** Open workspace + dedicated client meeting room  
+> - **Infrastructure Strategy:** Cloud-first approach with minimal on-prem hardware  
+> - **Cloud Services:** Google Workspace, GitHub, DigitalOcean for client projects  
+> - **Business Need:** Protect client data and cloud credentials from guest network threats while maintaining professional client meeting environment  
 
 ## **Quick Start**
 ### **Prerequisites**
@@ -34,8 +42,8 @@
 - [ ] Build topology and cable devices
 - [ ] Configure router VLAN interfaces and DHCP
 - [ ] Configure switch VLANs and port assignments
-- [ ] Configure wireless access point
-- [ ] Implement security features
+- [ ] Configure wireless access point with multi-SSID
+- [ ] Implement security features and ACLs
 - [ ] Verification and testing
 
 ### **Session Breakdown**
@@ -52,29 +60,33 @@
 graph TB
     INTERNET[Internet Cloud<br/>8.8.8.8] --> R1[Core Router<br/>1941]
     
-    R1 --> SW1[Layer 2 Switch<br/>2960]
+    R1 --> SW1[Managed Switch<br/>2960-24TT]
     
-    SW1 --> AP1[Wireless AP<br/>WRT300N]
-    SW1 --> PC1[PC1<br/>BUSINESS VLAN]
-    SW1 --> PC2[PC2<br/>GUEST VLAN]
-    SW1 --> PRINTER[Network Printer<br/>IOT VLAN]
+    SW1 --> AP1[Wireless Router<br/>WRT300N]
+    SW1 --> WORKSTATION[Design Workstations<br/>VLAN 10]
+    SW1 --> MEETING[Meeting Room<br/>VLAN 20 ONLY]
     
-    AP1 --> LAPTOP[Laptop<br/>BUSINESS SSID]
-    AP1 --> PHONE[Smartphone<br/>GUEST SSID]
+    AP1 --> LAPTOP[Designer Laptop<br/>Business SSID]
+    AP1 --> CLIENT[Client Device<br/>Guest SSID]
+    
+    INTERNET --> CLOUD[Cloud Platforms<br/>Google Workspace, GitHub<br/>DigitalOcean]
+    
+    WORKSTATION -.-> CLOUD
 ```
 
 ### **Network Design Table**
 | Component | Specification | Purpose |
 |-----------|---------------|---------|
-| BUSINESS VLAN | 192.168.10.0/28 | Workstations & trusted devices |
-| GUEST VLAN | 192.168.20.0/28 | Visitor internet access |
-| IOT VLAN | 192.168.30.0/28 | Printers & smart devices |
+| BUSINESS VLAN | 192.168.10.0/28 | Design workstations & creative team |
+| GUEST VLAN | 192.168.20.0/28 | Client meeting room & visitor access |
 | NATIVE VLAN | 192.168.99.0/28 | Switch management |
 
 ### **The WHY**
+- **Why 1941 router?** Cost-effective choice that handles essential features for growing businesses without over-provisioning expensive enterprise hardware
+- **Why managed switch?** Port density (11+ ports needed) + future VLAN flexibility for $100 premium over unmanaged
 - **Why router-on-a-stick?** Cost-effective for small offices - single router interface handles multiple VLANs without expensive layer 3 switches
-- **Why /28 subnets?** Perfect for SOHO scale (14 hosts per VLAN), prevents IP address waste while allowing room for growth
-- **Why separate IOT VLAN?** Isolates potentially vulnerable smart devices from business data, following security best practices
+- **Why /28 subnets?** Perfect for business scale (14 hosts per VLAN), prevents IP address waste while allowing room for growth from 6 to 10 employees
+- **Why simple wireless setup?** Small businesses use consumer-grade equipment with basic features - appropriate for budget and technical expertise
 
 ## **Configuration**
 
@@ -88,13 +100,12 @@ interface GigabitEthernet0/0.10
  description BUSINESS_VLAN
  encapsulation dot1Q 10
  ip address 192.168.10.1 255.255.255.240
- ip access-group BUSINESS-IN in
 !
 interface GigabitEthernet0/0.20
  description GUEST_VLAN  
  encapsulation dot1Q 20
  ip address 192.168.20.1 255.255.255.240
- ip access-group GUEST-STRICT in
+ ip access-group GUEST-RESTRICTED in
 
 ! DHCP Configuration
 ip dhcp pool BUSINESS_POOL
@@ -119,8 +130,6 @@ vlan 10
  name BUSINESS
 vlan 20  
  name GUEST
-vlan 30
- name IOT
 vlan 99
  name NATIVE
 
@@ -129,60 +138,54 @@ interface GigabitEthernet0/1
  description TRUNK_TO_ROUTER
  switchport mode trunk
  switchport trunk native vlan 99
- switchport trunk allowed vlan 10,20,30,99
+ switchport trunk allowed vlan 10,20,99
 
-! Business Ports
-interface GigabitEthernet0/2
- description BUSINESS_PC1
+! Workstation Ports
+interface range GigabitEthernet0/2-8
+ description DESIGN_WORKSTATIONS
  switchport mode access
  switchport access vlan 10
  switchport port-security
  switchport port-security maximum 2
  spanning-tree portfast
 
-! Guest Port  
-interface GigabitEthernet0/3
- description GUEST_PORT
+! Meeting Room Port  
+interface GigabitEthernet0/9
+ description CLIENT_MEETING_ROOM
  switchport mode access
  switchport access vlan 20
  switchport port-security
  switchport port-security maximum 1
 
-! IOT Port
-interface GigabitEthernet0/4
- description NETWORK_PRINTER
+! Wireless AP Port
+interface GigabitEthernet0/10
+ description TO_WIRELESS_ROUTER
  switchport mode access
- switchport access vlan 30
-
-! Trunk to Wireless AP
-interface GigabitEthernet0/5
- description TO_WIRELESS_AP
- switchport mode trunk
- switchport trunk native vlan 99
- switchport trunk allowed vlan 10,20,99
+ switchport access vlan 10
 ```
 
-### **Wireless Access Point Configuration**
+### **Wireless Router Configuration**
 ```bash
-! Business SSID
+! Basic wireless setup - using default router mode
+interface BVI1
+ ip address dhcp
+
+! Business SSID with security
 dot11 ssid BUSINESS-SECURE
- vlan 10
  authentication open
  authentication key-management wpa2
- wpa-psk ascii SOHOsecure123!
+ wpa-psk ascii DesignStudio2024!
 
-! Guest SSID  
+! Guest SSID with isolation
 dot11 ssid GUEST-ACCESS
- vlan 20
  authentication open
  guest-mode
- max-associations 8
 
-! Apply SSIDs to radio
+! Apply SSIDs to radios
 interface Dot11Radio0
  ssid BUSINESS-SECURE
  ssid GUEST-ACCESS
-!
+
 interface Dot11Radio1
  ssid BUSINESS-SECURE  
  ssid GUEST-ACCESS
@@ -190,24 +193,20 @@ interface Dot11Radio1
 
 ### **Security ACLs**
 ```bash
-! Business VLAN ACL
-ip access-list extended BUSINESS-IN
- permit ip 192.168.10.0 0.0.0.15 any
- remark "Business users need full internet access"
- deny ip any any log
-
-! Guest VLAN ACL - Internet Only
-ip access-list extended GUEST-STRICT  
- deny ip 192.168.20.0 0.0.0.15 192.168.0.0 0.0.255.255
- remark "Guests cannot access internal networks"
+! Guest VLAN ACL - Internet Only, No Business Access
+ip access-list extended GUEST-RESTRICTED  
+ deny ip 192.168.20.0 0.0.0.15 192.168.10.0 0.0.0.15
+ remark "CRITICAL: Block guests from business network where cloud credentials live"
  permit ip 192.168.20.0 0.0.0.15 any
+ remark "ALLOW: Guests need internet for their own cloud accounts and demos"
  deny ip any any log
 ```
 
 ### **The WHY**
-- **Why port-security maximum 2?** Allows for a desktop and occasional laptop connection without being too restrictive, balancing security and usability
-- **Why spanning-tree portfast?** Prevents 30-second delay on access ports when devices connect, improving user experience
-- **Why explicit 'deny ip any any log'?** Logs any unexpected traffic for security monitoring and troubleshooting
+- **Why port-security maximum 2?** Allows each designer to connect both desktop and laptop without being too restrictive
+- **Why meeting room port-security maximum 1?** Single client device per meeting room port prevents unauthorized sharing
+- **Why simple wireless configuration?** Small businesses use equipment with default settings - realistic for technical expertise level
+- **Why guest ACL permits internet?** Clients need access to their own cloud accounts during meetings and presentations
 
 ## **Verification**
 
@@ -218,24 +217,25 @@ SW1# show vlan brief
 
 VLAN Name                             Status    Ports
 ---- -------------------------------- --------- -------------------------------
-1    default                          active    Gi0/6, Gi0/7, Gi0/8, Gi0/9
-10   BUSINESS                         active    Gi0/2, Gi0/5
-20   GUEST                            active    Gi0/3, Gi0/5
-30   IOT                              active    Gi0/4
-99   NATIVE                           active    Gi0/1, Gi0/5
+1    default                          active    Gi0/11-24
+10   BUSINESS                         active    Gi0/2-8, Gi0/10
+20   GUEST                            active    Gi0/9
+99   NATIVE                           active    Gi0/1
 ```
 
 ### **Verification Steps**
 1. **Step 1:** `show vlan brief` - Verify VLAN assignments and port memberships
 2. **Step 2:** `show port-security` - Check security status and violation counts
-3. **Step 3:** `ping 8.8.8.8` from BUSINESS PC - Test internet access
-4. **Step 4:** `ping 192.168.10.1` from GUEST PC - Should FAIL (ACL blocking)
-5. **Step 5:** Connect to wireless SSIDs - Verify correct VLAN assignment and connectivity
+3. **Step 3:** `ping 8.8.8.8` from BUSINESS workstation - Test internet/cloud access
+4. **Step 4:** `ping 192.168.10.1` from GUEST device - Should FAIL (ACL blocking)
+5. **Step 5:** Connect to both wireless SSIDs - Verify connectivity and isolation
+6. **Step 6:** `show access-lists` - Check ACL hits to confirm policies working
 
 ### **The WHY**
-- **Why verify VLAN assignments first?** Foundation of segmentation - if VLANs are wrong, nothing else works properly
-- **Why test both success and failure cases?** Ensures security policies work in both directions and confirms proper isolation
-- **Why check port security?** Confirms physical security measures are active and provides baseline for monitoring
+- **Why verify VLAN assignments first?** Foundation of segmentation - if VLANs are wrong, security fails
+- **Why test guest→business blocking?** Core security requirement to protect business systems and cloud credentials
+- **Why check wireless connectivity?** Ensures both business and guest users can access needed resources
+- **Why monitor ACL hits?** Confirms security policies are actively enforcing segmentation
 
 ## **Troubleshooting**
 
@@ -243,85 +243,89 @@ VLAN Name                             Status    Ports
 | Symptom | Possible Cause | Solution |
 |---------|---------------|----------|
 | No DHCP address | VLAN mismatch on port | Check `show vlan` and port assignments |
-| Can't ping internet | ACL blocking traffic | Verify ACL rules with `show access-lists` |
-| Wireless not connecting | SSID VLAN misconfiguration | Check AP configuration `show dot11 associations` |
+| Guest device can ping business | ACL not applied | Verify ACL on guest subinterface |
+| Wireless clients can't connect | Wrong SSID security | Check WPA2 password on business SSID |
 | Port security violation | Too many devices connected | Check `show port-security` and adjust maximum |
-| Inter-VLAN ping working | Missing ACL on subinterface | Apply correct access-group to subinterface |
+| No internet from guest | ACL too restrictive | Check permit statements in guest ACL |
 
 ### **Debug Commands**
 ```bash
 # Troubleshooting commands
 show ip interface brief              # Check interface status
-show running-config                  # Verify current configuration
+show running-config                  # Verify current configuration  
 show port-security interface [int]   # Check specific port security
 show dot11 associations              # View wireless clients
 show access-lists                    # Verify ACL rules and hits
-debug ip packet                     # See packet flow (use carefully)
+ping 8.8.8.8 source 192.168.20.10   # Test guest internet access
+traceroute 8.8.8.8                   # Check routing path
 ```
 
 ## **Protocol Deep Dive**
 
-### **VLAN Operation**
+### **Security Strategy**
+> This design addresses the REAL threat: a compromised guest device attacking business workstations to steal cloud service credentials. While cloud platforms have their own security, once credentials are stolen, attackers gain full access to business data.
+>
+> Our network segmentation ensures that guest devices can only reach the internet (including cloud services for their OWN accounts), but cannot communicate with business systems where sensitive cloud credentials are stored and used.
+
+### **VLAN Security Operation**
 ```mermaid
 graph LR
-    A[PC Sends Untagged Frame] --> B{Switch Access Port}
-    B --> C[Add VLAN Tag Based on Port VLAN]
-    C --> D[Forward Through Trunk Ports]
-    D --> E[Router Processes Tagged Frame]
-    E --> F[Route Based on Destination VLAN]
-    F --> G[Return Traffic Gets Re-tagged]
+    A[Guest Device] --> B{Switch Access Port}
+    B --> C[Add VLAN 20 Tag]
+    C --> D[Router Processes Frame]
+    D --> E[ACL Check: Guest→Business?]
+    E --> F[BLOCKED: Security Policy]
+    E --> G[PERMIT: Internet/Cloud]
+    G --> H[Internet & Cloud Services]
 ```
 
 ### **Key Concepts**
-- **802.1Q Tagging:** Adds 4-byte VLAN tag to Ethernet frames for identification across trunk links
-- **Native VLAN:** Carries untagged traffic on trunk ports, should be secured and separate from user VLANs
-- **Router-on-a-stick:** Single physical interface with multiple logical subinterfaces, each handling a different VLAN
-- **Port Security:** Learns MAC addresses dynamically and prevents unauthorized device connections
-
-### **Packet Analysis**
-> In real networks, use Wireshark to observe 802.1Q tagged frames between switch and router, and monitor DHCP discovery/offer process across VLAN boundaries
+- **802.1Q Tagging:** Essential for maintaining segmentation between business and guest traffic
+- **Router-on-a-stick:** Cost-effective security enforcement point between VLANs
+- **ACL Enforcement:** Critical layer for protecting business systems from guest network threats
+- **Wireless Guest Isolation:** Built-in feature that provides basic client separation
 
 ## **Skills Demonstrated**
-- ✅ **VLAN Configuration** - Creating and managing virtual LANs for logical segmentation
-- ✅ **Router-on-a-stick** - Inter-VLAN routing implementation on budget hardware
-- ✅ **Port Security** - Physical network access control and MAC address management
-- ✅ **Wireless Segmentation** - Multi-SSID deployment with proper VLAN mapping
-- ✅ **Basic ACLs** - Traffic filtering between network segments
-- ✅ **DHCP Management** - IP address assignment and scope management per segment
+- ✅ **Business-Aligned Design** - Network architecture that supports real small business needs
+- ✅ **VLAN Segmentation** - Logical separation of business and guest traffic
+- ✅ **Router-on-a-stick** - Cost-effective inter-VLAN routing implementation
+- ✅ **Wireless Security** - Multi-SSID deployment with appropriate security levels
+- ✅ **Access Control** - Traffic filtering to protect business systems
+- ✅ **Port Security** - Physical network access control
 
 ## **Real-World Applications**
 
-### **Small Business Use Cases**
-- **Home Office:** Consultant with client visitors needing secure guest WiFi separate from business systems
-- **Retail Shop:** Separate point-of-sale systems from customer WiFi to meet PCI compliance
-- **Medical Office:** Isolate patient WiFi from medical records network for HIPAA compliance
-- **Legal Practice:** Secure segmentation between client-facing systems and case management databases
+### **Modern Business Use Cases**
+- **Web Design Studios:** Protect client project data and cloud credentials from guest network threats
+- **Consulting Firms:** Secure access to confidential client documents during meetings
+- **Startup Offices:** Professional client environment while bootstrapping infrastructure costs
+- **Creative Agencies:** Isolate guest devices from workstations containing sensitive business data
 
 ### **Business Value**
-- **Security:** Prevents guest devices from accessing business data and internal resources
-- **Cost Savings:** Single router handles multiple networks instead of requiring expensive layer 3 switches
-- **Compliance:** Meets basic security requirements for data separation in regulated industries
-- **Scalability:** Easy to add more VLANs as business grows or departments expand
-- **User Experience:** Provides appropriate access levels for different user types without complexity
+- **Credential Protection:** Prevents theft of cloud service credentials from business workstations
+- **Cost Optimization:** Enterprise security features at small business budget using appropriate technology
+- **Professional Image:** Secure, reliable client meeting environment
+- **Growth Ready:** Foundation for additional segmentation as business expands
+- **Appropriate Complexity:** Solution matches technical expertise available in small business
 
 ## **Learning Outcomes**
 By completing this lab, you will understand:
 
 ### **Technical Knowledge**
-- How VLANs logically separate broadcast domains and improve network performance
-- Router subinterface configuration and operation for inter-VLAN routing
-- Basic wireless security principles and segmentation strategies
-- Network access control principles and implementation methods
+- How VLAN segmentation provides foundational security in small business environments
+- Router subinterface configuration for cost-effective multi-network support
+- Appropriate wireless security implementation for business scale
+- Network-level security controls that protect business assets
 
 ### **Practical Skills**
-- Designing appropriate network segmentation for different business requirements
-- Implementing and testing security policies for various user types
-- Troubleshooting layer 2 and layer 3 connectivity issues in segmented networks
-- Documenting network configurations for maintenance and troubleshooting
+- Designing network security that aligns with business constraints and expertise
+- Implementing appropriate technology solutions for budget-conscious growing businesses
+- Validating security controls through systematic testing methodology
+- Balancing security needs with usability and maintainability
 
 ---
 
-**Maintained by:** Sai Aik Kwan | **[Rick's Home Lab](https://github.com/rick-homelab)**  
-*Found an issue? [Open a GitHub Issue](https://github.com/rick-homelab/business-network-simulations/issues)*
+**Maintained by:** Sai Aik Kwan | **[Rick's Home Lab](https://github.com/username)**  
+*Found an issue? [Open a GitHub Issue](https://github.com/username/repo-name/issues)*
 
 *"Building networks that solve real business challenges with appropriate technical solutions."*
