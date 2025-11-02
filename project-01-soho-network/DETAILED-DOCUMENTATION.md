@@ -58,20 +58,25 @@
 
 ```mermaid
 graph TB
-    INTERNET[Internet Cloud<br/>8.8.8.8] --> R1[Core Router<br/>1941]
+    INTERNET[Internet Cloud<br/>8.8.8.8] <--> R1[Core Router<br/>1941]
     
-    R1 --> SW1[Managed Switch<br/>2960-24TT]
+    R1 <--> |ROAS| SW1[Managed Switch<br/>2960]
+
+    SW1 <--> |Access| AP1[Wireless Router]
+    SW1 <--> |Access| WORKSTATION[Design Workstations<br/>VLAN 10]
+    SW1 <--> |Access| MEETING[Meeting Room<br/>VLAN 20 ONLY]
     
-    SW1 --> AP1[Wireless Router<br/>WRT300N]
-    SW1 --> WORKSTATION[Design Workstations<br/>VLAN 10]
-    SW1 --> MEETING[Meeting Room<br/>VLAN 20 ONLY]
+    AP1 <--> LAPTOP[Designer Laptop<br/>Business SSID<br/>VLAN 10]
+    AP1 <--> CLIENT[Client Device<br/>Guest SSID<br/>VLAN 20]
     
-    AP1 --> LAPTOP[Designer Laptop<br/>Business SSID]
-    AP1 --> CLIENT[Client Device<br/>Guest SSID]
+    INTERNET <--> CLOUD[Cloud Platforms<br/>Google Workspace, GitHub]
     
-    INTERNET --> CLOUD[Cloud Platforms<br/>Google Workspace, GitHub<br/>DigitalOcean]
-    
-    WORKSTATION -.-> CLOUD
+    WORKSTATION -.-> |via Internet| CLOUD
+    MEETING -.-> |via Internet| CLOUD
+    LAPTOP -.-> |via Internet| CLOUD
+    CLIENT -.-> |via Internet| CLOUD
+
+    MEETING -.-> |ACL Blocked| WORKSTATION
 ```
 
 ### **Network Design Table**
@@ -79,7 +84,7 @@ graph TB
 |-----------|---------------|---------|
 | BUSINESS VLAN | 192.168.10.0/28 | Design workstations & creative team |
 | GUEST VLAN | 192.168.20.0/28 | Client meeting room & visitor access |
-| NATIVE VLAN | 192.168.99.0/28 | Switch management |
+| WAN LINK | 203.0.113.0/30 | ???? |
 
 ### **The WHY**
 - **Why 1941 router?** Cost-effective choice that handles essential features for growing businesses without over-provisioning expensive enterprise hardware
@@ -203,33 +208,24 @@ ip access-list extended GUEST-RESTRICTED
 ```
 
 ### **The WHY**
-- **Why port-security maximum 2?** Allows each designer to connect both desktop and laptop without being too restrictive
-- **Why meeting room port-security maximum 1?** Single client device per meeting room port prevents unauthorized sharing
 - **Why simple wireless configuration?** Small businesses use equipment with default settings - realistic for technical expertise level
 - **Why guest ACL permits internet?** Clients need access to their own cloud accounts during meetings and presentations
 
 ## **Verification**
 
 ### **Expected Results**
-```bash
-# Verify VLANs are active
-SW1# show vlan brief
+- [pic-1](#link-pic-1)
+- [pic-2](#link-pic-2)
+- [pic-3](#link-pic-3)
+- [pic-4](#link-pic-4)
 
-VLAN Name                             Status    Ports
----- -------------------------------- --------- -------------------------------
-1    default                          active    Gi0/11-24
-10   BUSINESS                         active    Gi0/2-8, Gi0/10
-20   GUEST                            active    Gi0/9
-99   NATIVE                           active    Gi0/1
-```
 
 ### **Verification Steps**
 1. **Step 1:** `show vlan brief` - Verify VLAN assignments and port memberships
-2. **Step 2:** `show port-security` - Check security status and violation counts
-3. **Step 3:** `ping 8.8.8.8` from BUSINESS workstation - Test internet/cloud access
-4. **Step 4:** `ping 192.168.10.1` from GUEST device - Should FAIL (ACL blocking)
-5. **Step 5:** Connect to both wireless SSIDs - Verify connectivity and isolation
-6. **Step 6:** `show access-lists` - Check ACL hits to confirm policies working
+2. **Step 2:** `ping 8.8.8.8` from BUSINESS workstation - Test internet/cloud access
+3. **Step 3:** `ping 192.168.10.1` from GUEST device - Should FAIL (ACL blocking)
+4. **Step 4:** Connect to both wireless SSIDs - Verify connectivity and isolation
+5. **Step 5:** `show access-lists` - Check ACL hits to confirm policies working
 
 ### **The WHY**
 - **Why verify VLAN assignments first?** Foundation of segmentation - if VLANs are wrong, security fails
@@ -247,6 +243,7 @@ VLAN Name                             Status    Ports
 | Wireless clients can't connect | Wrong SSID security | Check WPA2 password on business SSID |
 | Port security violation | Too many devices connected | Check `show port-security` and adjust maximum |
 | No internet from guest | ACL too restrictive | Check permit statements in guest ACL |
+| Can't reach internet | No possible route | Check `ip route` and/or create one new |
 
 ### **Debug Commands**
 ```bash
