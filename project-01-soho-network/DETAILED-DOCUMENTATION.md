@@ -58,16 +58,16 @@
 
 ```mermaid
 graph TB
-    INTERNET[Internet Cloud<br/>8.8.8.8] <--> R1[Core Router<br/>1941]
+    INTERNET[Internet<br/>8.8.8.8] <--> R1[Core Router</br>1941]
     
-    R1 <--> |ROAS| SW1[Managed Switch<br/>2960]
+    R1 <--> |Trunk| SW1[Managed Switch<br/>2960]
 
-    SW1 <--> |Access| AP1[Wireless Router]
-    SW1 <--> |Access| WORKSTATION[Design Workstations<br/>VLAN 10]
-    SW1 <--> |Access| MEETING[Meeting Room<br/>VLAN 20 ONLY]
+    SW1 <--> |G0/2 - Access| AP1[Wireless Router<br/>VLAN 10]
+    SW1 <--> |F0/2-8 - Access| WORKSTATION[Design Workstations<br/>VLAN 10]
+    SW1 <--> |F0/9-10 - Access| MEETING[Meeting Room<br/>VLAN 20 ONLY]
     
-    AP1 <--> LAPTOP[Designer Laptop<br/>Business SSID<br/>VLAN 10]
-    AP1 <--> CLIENT[Client Device<br/>Guest SSID<br/>VLAN 20]
+    AP1 <--> |Wireless| LAPTOP[Designer Laptop<br/>Business SSID]
+    AP1 <--> |Wireless| CLIENT[Client Device<br/>Guest SSID]
     
     INTERNET <--> CLOUD[Cloud Platforms<br/>Google Workspace, GitHub]
     
@@ -84,7 +84,8 @@ graph TB
 |-----------|---------------|---------|
 | BUSINESS VLAN | 192.168.10.0/28 | Design workstations & creative team |
 | GUEST VLAN | 192.168.20.0/28 | Client meeting room & visitor access |
-| WAN LINK | 203.0.113.0/30 | ???? |
+| WAN LINK | 203.0.113.0/30 | Internet connectivity |
+| INTERNET | 8.8.8.8/32 | Cloud & internet simulation |
 
 ### **The WHY**
 - **Why 1941 router?** Cost-effective choice that handles essential features for growing businesses without over-provisioning expensive enterprise hardware
@@ -97,20 +98,37 @@ graph TB
 
 ### **Core Router Configuration**
 ```bash
+! Configure WAN Interface
+interface GigabitEthernet0/1
+ description TO_INTERNET
+ ip address 203.0.113.1 255.255.255.252
+ no shutdown
+
 ! Configure VLAN subinterfaces
 interface GigabitEthernet0/0
  no shutdown
-!
+
 interface GigabitEthernet0/0.10
  description BUSINESS_VLAN
  encapsulation dot1Q 10
  ip address 192.168.10.1 255.255.255.240
-!
+ ip nat inside
+
 interface GigabitEthernet0/0.20
  description GUEST_VLAN  
  encapsulation dot1Q 20
  ip address 192.168.20.1 255.255.255.240
  ip access-group GUEST-RESTRICTED in
+ ip nat inside
+
+! Internet Connectivity
+ip route 0.0.0.0 0.0.0.0 203.0.113.2
+ip nat inside source list NAT_ACL interface GigabitEthernet0/1 overload
+access-list 1 permit 192.168.10.0 0.0.0.15
+access-list 1 permit 192.168.20.0 0.0.0.15
+
+interface GigabitEthernet0/1
+ ip nat outside
 
 ! DHCP Configuration
 ip dhcp pool BUSINESS_POOL
@@ -146,21 +164,23 @@ interface GigabitEthernet0/1
  switchport trunk allowed vlan 10,20,99
 
 ! Workstation Ports
-interface range GigabitEthernet0/2-8
+interface range FastEthernet0/2-8
  description DESIGN_WORKSTATIONS
  switchport mode access
  switchport access vlan 10
  switchport port-security
  switchport port-security maximum 2
+ switchport port-security violation restrict
  spanning-tree portfast
 
 ! Meeting Room Port  
-interface GigabitEthernet0/9
+interface FastEthernet0/9
  description CLIENT_MEETING_ROOM
  switchport mode access
  switchport access vlan 20
  switchport port-security
  switchport port-security maximum 1
+ switchport port-security violation shutdown
 
 ! Wireless AP Port
 interface GigabitEthernet0/10
@@ -198,27 +218,40 @@ interface Dot11Radio1
 
 ### **Security ACLs**
 ```bash
-! Guest VLAN ACL - Internet Only, No Business Access
-ip access-list extended GUEST-RESTRICTED  
+! Guest VLAN ACL - Secure Configuration
+ip access-list extended GUEST-RESTRICTED
  deny ip 192.168.20.0 0.0.0.15 192.168.10.0 0.0.0.15
- remark "CRITICAL: Block guests from business network where cloud credentials live"
+ remark "BLOCK: Guests from business network"
+ permit udp any eq bootpc any eq bootps
+ permit udp any eq bootps any eq bootpc  
+ remark "ALLOW: DHCP for address assignment"
+ permit udp any any eq 53
+ remark "ALLOW: DNS for name resolution"
+ permit icmp any any
+ remark "ALLOW: ICMP for network troubleshooting"
  permit ip 192.168.20.0 0.0.0.15 any
- remark "ALLOW: Guests need internet for their own cloud accounts and demos"
- deny ip any any log
+ remark "ALLOW: Guest internet access"
+ ! Implicit deny any any blocks everything else
 ```
 
 ### **The WHY**
-- **Why simple wireless configuration?** Small businesses use equipment with default settings - realistic for technical expertise level
-- **Why guest ACL permits internet?** Clients need access to their own cloud accounts during meetings and presentations
+- **Why corrected ACL order?** Security-first approach - block threats before allowing services
+- **Why specific protocol permits?** Essential network services (DHCP, DNS, ICMP) required for functionality
+- **Why port-security violations differ?** Business ports flexible, guest ports strict for security
+
+## **Implementation Note: Wireless Design**
+**Simulation Approach:** Single wireless router with guest SSID isolation feature  
+**Production Equivalent:** Prosumer router with multiple VLAN-aware SSIDs  
+**Security Maintained:** Guest isolation through wireless features + network ACLs  
+**Business Appropriate:** Consumer-grade equipment matches SOHO budget and technical expertise
 
 ## **Verification**
 
-### **Expected Results**
-- [pic-1](#link-pic-1)
-- [pic-2](#link-pic-2)
-- [pic-3](#link-pic-3)
-- [pic-4](#link-pic-4)
-
+### **Verification Evidence**
+- [VLAN Configuration](./screenshots/vlan-verification.png)
+- [Security Validation](./screenshots/security-test.png)  
+- [Internet Connectivity](./screenshots/internet-test.png)
+- [Wireless Operation](./screenshots/wireless-connectivity.png)
 
 ### **Verification Steps**
 1. **Step 1:** `show vlan brief` - Verify VLAN assignments and port memberships
@@ -226,6 +259,7 @@ ip access-list extended GUEST-RESTRICTED
 3. **Step 3:** `ping 192.168.10.1` from GUEST device - Should FAIL (ACL blocking)
 4. **Step 4:** Connect to both wireless SSIDs - Verify connectivity and isolation
 5. **Step 5:** `show access-lists` - Check ACL hits to confirm policies working
+6. **Step 6:** `show ip nat translations` - Verify NAT working for internet access
 
 ### **The WHY**
 - **Why verify VLAN assignments first?** Foundation of segmentation - if VLANs are wrong, security fails
@@ -239,11 +273,11 @@ ip access-list extended GUEST-RESTRICTED
 | Symptom | Possible Cause | Solution |
 |---------|---------------|----------|
 | No DHCP address | VLAN mismatch on port | Check `show vlan` and port assignments |
-| Guest device can ping business | ACL not applied | Verify ACL on guest subinterface |
+| Guest device can ping business | ACL order wrong | Verify deny rules before permit rules |
 | Wireless clients can't connect | Wrong SSID security | Check WPA2 password on business SSID |
 | Port security violation | Too many devices connected | Check `show port-security` and adjust maximum |
-| No internet from guest | ACL too restrictive | Check permit statements in guest ACL |
-| Can't reach internet | No possible route | Check `ip route` and/or create one new |
+| No internet from any device | Missing default route | Check `show ip route` for 0.0.0.0/0 |
+| NAT not working | NAT ACL incorrect | Verify `access-list 1` includes both VLANs |
 
 ### **Debug Commands**
 ```bash
@@ -253,6 +287,7 @@ show running-config                  # Verify current configuration
 show port-security interface [int]   # Check specific port security
 show dot11 associations              # View wireless clients
 show access-lists                    # Verify ACL rules and hits
+show ip nat translations             # Check NAT operation
 ping 8.8.8.8 source 192.168.20.10   # Test guest internet access
 traceroute 8.8.8.8                   # Check routing path
 ```
@@ -289,6 +324,7 @@ graph LR
 - ✅ **Wireless Security** - Multi-SSID deployment with appropriate security levels
 - ✅ **Access Control** - Traffic filtering to protect business systems
 - ✅ **Port Security** - Physical network access control
+- ✅ **Internet Connectivity** - NAT, routing, and WAN configuration
 
 ## **Real-World Applications**
 
