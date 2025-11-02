@@ -99,127 +99,61 @@ graph TB
 ### **Core Router Configuration**
 ```bash
 ! Configure WAN Interface
-interface GigabitEthernet0/1
+interface g0/0
  description TO_INTERNET
  ip address 203.0.113.1 255.255.255.252
  no shutdown
 
 ! Configure VLAN subinterfaces
-interface GigabitEthernet0/0
+interface g0/1
  no shutdown
 
-interface GigabitEthernet0/0.10
+interface g0/0.10
  description BUSINESS_VLAN
  encapsulation dot1Q 10
  ip address 192.168.10.1 255.255.255.240
  ip nat inside
 
-interface GigabitEthernet0/0.20
+interface g0/0.20
  description GUEST_VLAN  
  encapsulation dot1Q 20
  ip address 192.168.20.1 255.255.255.240
- ip access-group GUEST-RESTRICTED in
+ ip access-group NO_GUESTS in
  ip nat inside
 
 ! Internet Connectivity
 ip route 0.0.0.0 0.0.0.0 203.0.113.2
-ip nat inside source list NAT_ACL interface GigabitEthernet0/1 overload
-access-list 1 permit 192.168.10.0 0.0.0.15
-access-list 1 permit 192.168.20.0 0.0.0.15
 
-interface GigabitEthernet0/1
+! Create named ACL for NAT
+ip access-list standard NAT_ACL
+ permit 192.168.10.0 0.0.0.15
+ permit 192.168.20.0 0.0.0.15
+
+ip nat inside source list NAT_ACL interface g0/0 overload
+
+interface g0/0
  ip nat outside
 
 ! DHCP Configuration
 ip dhcp pool BUSINESS_POOL
  network 192.168.10.0 255.255.255.240
  default-router 192.168.10.1
- dns-server 8.8.8.8 8.8.4.4
+ dns-server 8.8.4.4
 
 ip dhcp pool GUEST_POOL
  network 192.168.20.0 255.255.255.240
  default-router 192.168.20.1
- dns-server 8.8.8.8 8.8.4.4
+ dns-server 8.8.4.4
 
 ! Reserve first IPs for static devices
-ip dhcp excluded-address 192.168.10.1 192.168.10.5
-ip dhcp excluded-address 192.168.20.1 192.168.20.5
-```
-
-### **Switch Configuration**
-```bash
-! Create VLANs
-vlan 10
- name BUSINESS
-vlan 20  
- name GUEST
-vlan 99
- name NATIVE
-
-! Trunk to Router
-interface GigabitEthernet0/1
- description TRUNK_TO_ROUTER
- switchport mode trunk
- switchport trunk native vlan 99
- switchport trunk allowed vlan 10,20,99
-
-! Workstation Ports
-interface range FastEthernet0/2-8
- description DESIGN_WORKSTATIONS
- switchport mode access
- switchport access vlan 10
- switchport port-security
- switchport port-security maximum 2
- switchport port-security violation restrict
- spanning-tree portfast
-
-! Meeting Room Port  
-interface FastEthernet0/9
- description CLIENT_MEETING_ROOM
- switchport mode access
- switchport access vlan 20
- switchport port-security
- switchport port-security maximum 1
- switchport port-security violation shutdown
-
-! Wireless AP Port
-interface GigabitEthernet0/10
- description TO_WIRELESS_ROUTER
- switchport mode access
- switchport access vlan 10
-```
-
-### **Wireless Router Configuration**
-```bash
-! Basic wireless setup - using default router mode
-interface BVI1
- ip address dhcp
-
-! Business SSID with security
-dot11 ssid BUSINESS-SECURE
- authentication open
- authentication key-management wpa2
- wpa-psk ascii DesignStudio2024!
-
-! Guest SSID with isolation
-dot11 ssid GUEST-ACCESS
- authentication open
- guest-mode
-
-! Apply SSIDs to radios
-interface Dot11Radio0
- ssid BUSINESS-SECURE
- ssid GUEST-ACCESS
-
-interface Dot11Radio1
- ssid BUSINESS-SECURE  
- ssid GUEST-ACCESS
+ip dhcp excluded-address 192.168.10.1 192.168.10.4
+ip dhcp excluded-address 192.168.20.1 192.168.20.4
 ```
 
 ### **Security ACLs**
 ```bash
 ! Guest VLAN ACL - Secure Configuration
-ip access-list extended GUEST-RESTRICTED
+ip access-list extended NO_GUESTS
  deny ip 192.168.20.0 0.0.0.15 192.168.10.0 0.0.0.15
  remark "BLOCK: Guests from business network"
  permit udp any eq bootpc any eq bootps
@@ -234,16 +168,90 @@ ip access-list extended GUEST-RESTRICTED
  ! Implicit deny any any blocks everything else
 ```
 
+### **Switch Configuration**
+```bash
+! Create VLANs
+vlan 10
+ name BUSINESS
+vlan 20  
+ name GUEST
+vlan 99
+ name NATIVE
+
+! Trunk to Router
+interface g0/1
+ description TRUNK_TO_ROUTER
+ switchport mode trunk
+ switchport nonegotiate 
+ switchport trunk native vlan 99
+ switchport trunk allowed vlan 10,20,99
+
+! Workstation Ports
+interface range f0/2-8
+ description DESIGN_WORKSTATIONS
+ switchport mode access
+ switchport nonegotiate 
+ switchport access vlan 10
+ switchport port-security
+ switchport port-security violation restrict
+ spanning-tree portfast
+
+! Meeting Room Port  
+interface range f0/9-10
+ description CLIENT_MEETING_ROOM
+ switchport mode access
+ switchport nonegotiate 
+ switchport access vlan 20
+ switchport port-security
+ switchport port-security violation shutdown
+
+! Wireless AP Ports
+interface f0/23
+ description SIMULATED_WIRELESS_ROUTER
+ switchport mode access
+ switchport nonegotiate 
+ switchport access vlan 10
+ 
+interface f0/24
+ description SIMULATED_WIRELESS_ROUTER
+ switchport mode access
+ switchport nonegotiate 
+ switchport access vlan 20
+```
+## **Implementation Note: Wireless Design**
+>In production environments, a single wireless router would typically handle **multiple SSIDs with VLAN mapping**.  
+>This simulation uses **separate APs** to work within Packet Tracer's feature constraints while maintaining the same security architecture and business logic.
+
+
+### **Wireless Configuration**
+```bash
+AP-PT1 (GUI)
+ Display Name : Business
+ Port0 : leave it as is
+ Port1 
+    SSID : Business
+    2.4 GHz Channel : 6
+    Authentication 
+        - WPA2-PSK
+            PSK Pass Phrase : BUSINESSwlan
+            Encryption Type : AES
+
+AP-PT2 (GUI)
+ Display Name : Guest
+ Port0 : leave it as is
+ Port1 
+    SSID : Guest
+    2.4 GHz Channel : 11
+    Authentication 
+        - WPA2-PSK
+            PSK Pass Phrase : 123456789
+            Encryption Type : AES
+```
+
 ### **The WHY**
 - **Why corrected ACL order?** Security-first approach - block threats before allowing services
 - **Why specific protocol permits?** Essential network services (DHCP, DNS, ICMP) required for functionality
 - **Why port-security violations differ?** Business ports flexible, guest ports strict for security
-
-## **Implementation Note: Wireless Design**
-**Simulation Approach:** Single wireless router with guest SSID isolation feature  
-**Production Equivalent:** Prosumer router with multiple VLAN-aware SSIDs  
-**Security Maintained:** Guest isolation through wireless features + network ACLs  
-**Business Appropriate:** Consumer-grade equipment matches SOHO budget and technical expertise
 
 ## **Verification**
 
@@ -255,8 +263,8 @@ ip access-list extended GUEST-RESTRICTED
 
 ### **Verification Steps**
 1. **Step 1:** `show vlan brief` - Verify VLAN assignments and port memberships
-2. **Step 2:** `ping 8.8.8.8` from BUSINESS workstation - Test internet/cloud access
-3. **Step 3:** `ping 192.168.10.1` from GUEST device - Should FAIL (ACL blocking)
+2. **Step 2:** `ping 8.8.8.8` from BUSINESS Workstation and GUEST Meeting Room - Test internet/cloud access
+3. **Step 3:** `ping 192.168.10.1` from any GUEST device - Should FAIL (ACL blocking)
 4. **Step 4:** Connect to both wireless SSIDs - Verify connectivity and isolation
 5. **Step 5:** `show access-lists` - Check ACL hits to confirm policies working
 6. **Step 6:** `show ip nat translations` - Verify NAT working for internet access
@@ -277,7 +285,7 @@ ip access-list extended GUEST-RESTRICTED
 | Wireless clients can't connect | Wrong SSID security | Check WPA2 password on business SSID |
 | Port security violation | Too many devices connected | Check `show port-security` and adjust maximum |
 | No internet from any device | Missing default route | Check `show ip route` for 0.0.0.0/0 |
-| NAT not working | NAT ACL incorrect | Verify `access-list 1` includes both VLANs |
+| NAT not working | NAT ACL incorrect | Verify `access-list 1` includes both VLANs | (should modify)
 
 ### **Debug Commands**
 ```bash
@@ -288,7 +296,7 @@ show port-security interface [int]   # Check specific port security
 show dot11 associations              # View wireless clients
 show access-lists                    # Verify ACL rules and hits
 show ip nat translations             # Check NAT operation
-ping 8.8.8.8 source 192.168.20.10   # Test guest internet access
+ping 8.8.8.8 source 192.168.20.10    # Test guest internet access
 traceroute 8.8.8.8                   # Check routing path
 ```
 
@@ -342,7 +350,6 @@ graph LR
 - **Appropriate Complexity:** Solution matches technical expertise available in small business
 
 ## **Learning Outcomes**
-By completing this lab, you will understand:
 
 ### **Technical Knowledge**
 - How VLAN segmentation provides foundational security in small business environments
