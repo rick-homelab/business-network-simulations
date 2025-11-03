@@ -24,14 +24,25 @@ show access-lists
 ## 🛠️ Technical Architecture
 ```mermaid
 graph TB
-    INTERNET[Internet Cloud] --> R1[Core Router 1941]
-    R1 --> SW1[Managed Switch 2960]
-    SW1 --> AP1[Wireless Router]
-    SW1 --> WORKSTATION[Business Workstations<br/>VLAN 10]
-    SW1 --> MEETING[Guest Meeting Room<br/>VLAN 20]
+    INTERNET[Internet<br/>1.1.1.1] <--> R1[Core Router</br>1941]
     
-    AP1 --> LAPTOP[Designer Laptop<br/>Business SSID]
-    AP1 --> CLIENT[Client Device<br/>Guest SSID]
+    R1 <--> |Trunk| SW1[Managed Switch<br/>2960]
+
+    SW1 <--> |G0/2 - Access| AP1[Wireless Router<br/>VLAN 10]
+    SW1 <--> |F0/2-8 - Access| WORKSTATION[Design Workstations<br/>VLAN 10]
+    SW1 <--> |F0/9-10 - Access| MEETING[Meeting Room<br/>VLAN 20 ONLY]
+    
+    AP1 <--> |Wireless| LAPTOP[Designer Laptop<br/>Business SSID]
+    AP1 <--> |Wireless| CLIENT[Client Device<br/>Guest SSID]
+    
+    INTERNET <--> CLOUD[Cloud Platforms<br/>Google Workspace, GitHub]
+    
+    WORKSTATION -.-> |via Internet| CLOUD
+    MEETING -.-> |via Internet| CLOUD
+    LAPTOP -.-> |via Internet| CLOUD
+    CLIENT -.-> |via Internet| CLOUD
+
+    MEETING -.-> |ACL Blocked| WORKSTATION
 ```
 
 ## 💼 Business Value Delivered
