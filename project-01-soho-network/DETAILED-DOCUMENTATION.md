@@ -1,6 +1,6 @@
 # **Project 01: SOHO Network - Secure Small Office Implementation**
 
-**Status:** Tested ✅ | **Last Updated:** 2024-01-20
+**Status:** In Progress 🟡 | **Last Updated:** 2025-11-03
 
 ## **Table of Contents**
 - [Objective](#objective)
@@ -58,7 +58,7 @@
 
 ```mermaid
 graph TB
-    INTERNET[Internet<br/>8.8.8.8] <--> R1[Core Router</br>1941]
+    INTERNET[Internet<br/>1.1.1.1] <--> R1[Core Router</br>1941]
     
     R1 <--> |Trunk| SW1[Managed Switch<br/>2960]
 
@@ -85,7 +85,7 @@ graph TB
 | BUSINESS VLAN | 192.168.10.0/28 | Design workstations & creative team |
 | GUEST VLAN | 192.168.20.0/28 | Client meeting room & visitor access |
 | WAN LINK | 203.0.113.0/30 | Internet connectivity |
-| INTERNET | 8.8.8.8/32 | Cloud & internet simulation |
+| INTERNET | 1.1.1.1/32 | Cloud & internet simulation |
 
 ### **The WHY**
 - **Why 1941 router?** Cost-effective choice that handles essential features for growing businesses without over-provisioning expensive enterprise hardware
@@ -96,25 +96,40 @@ graph TB
 
 ## **Configuration**
 
+### **Authentication and Access on Router and Switch**
+```bash
+enable secret rickshomelab
+username rick secret rickshomelab
+line console 0
+ login local
+ logging syncronous
+ exec-timeout 30
+```
+### NOTE :
+- **username**: rick
+- **password**: rickshomelab
+- **Privileged exec mode**: rickshomelab
+
 ### **Core Router Configuration**
 ```bash
 ! Configure WAN Interface
 interface g0/0
  description TO_INTERNET
  ip address 203.0.113.1 255.255.255.252
+ ip nat outside 
  no shutdown
 
 ! Configure VLAN subinterfaces
 interface g0/1
  no shutdown
 
-interface g0/0.10
+interface g0/1.10
  description BUSINESS_VLAN
  encapsulation dot1Q 10
  ip address 192.168.10.1 255.255.255.240
  ip nat inside
 
-interface g0/0.20
+interface g0/1.20
  description GUEST_VLAN  
  encapsulation dot1Q 20
  ip address 192.168.20.1 255.255.255.240
@@ -131,23 +146,31 @@ ip access-list standard NAT_ACL
 
 ip nat inside source list NAT_ACL interface g0/0 overload
 
-interface g0/0
- ip nat outside
-
 ! DHCP Configuration
 ip dhcp pool BUSINESS_POOL
  network 192.168.10.0 255.255.255.240
  default-router 192.168.10.1
- dns-server 8.8.4.4
+ dns-server 8.8.8.8 
 
 ip dhcp pool GUEST_POOL
  network 192.168.20.0 255.255.255.240
  default-router 192.168.20.1
- dns-server 8.8.4.4
+ dns-server 8.8.8.8
 
 ! Reserve first IPs for static devices
 ip dhcp excluded-address 192.168.10.1 192.168.10.4
 ip dhcp excluded-address 192.168.20.1 192.168.20.4
+```
+
+### **Internet Router**
+```bash
+interface g0/0
+ ip address 203.0.113.2 255.255.255.252 
+ no shutdown
+ 
+interface loopback0
+ ip address 1.1.1.1 255.255.255.255
+ no shutdown
 ```
 
 ### **Security ACLs**
@@ -187,7 +210,7 @@ interface g0/1
  switchport trunk allowed vlan 10,20,99
 
 ! Workstation Ports
-interface range f0/2-8
+interface range f0/1-8
  description DESIGN_WORKSTATIONS
  switchport mode access
  switchport nonegotiate 
@@ -257,13 +280,13 @@ AP-PT2 (GUI)
 
 ### **Verification Evidence**
 - [VLAN Configuration](./screenshots/vlan-verification.png)
-- [Security Validation](./screenshots/security-test.png)  
+- [Security Validation](./screenshots/security-test.png) 
 - [Internet Connectivity](./screenshots/internet-test.png)
 - [Wireless Operation](./screenshots/wireless-connectivity.png)
 
 ### **Verification Steps**
 1. **Step 1:** `show vlan brief` - Verify VLAN assignments and port memberships
-2. **Step 2:** `ping 8.8.8.8` from BUSINESS Workstation and GUEST Meeting Room - Test internet/cloud access
+2. **Step 2:** `ping 1.1.1.1` from BUSINESS Workstation and GUEST Meeting Room - Test internet/cloud access
 3. **Step 3:** `ping 192.168.10.1` from any GUEST device - Should FAIL (ACL blocking)
 4. **Step 4:** Connect to both wireless SSIDs - Verify connectivity and isolation
 5. **Step 5:** `show access-lists` - Check ACL hits to confirm policies working
@@ -285,7 +308,7 @@ AP-PT2 (GUI)
 | Wireless clients can't connect | Wrong SSID security | Check WPA2 password on business SSID |
 | Port security violation | Too many devices connected | Check `show port-security` and adjust maximum |
 | No internet from any device | Missing default route | Check `show ip route` for 0.0.0.0/0 |
-| NAT not working | NAT ACL incorrect | Verify `access-list 1` includes both VLANs | (should modify)
+| NAT not working | NAT ACL incorrect | Verify `NAT_ACL` includes both VLANs | 
 
 ### **Debug Commands**
 ```bash
@@ -296,8 +319,9 @@ show port-security interface [int]   # Check specific port security
 show dot11 associations              # View wireless clients
 show access-lists                    # Verify ACL rules and hits
 show ip nat translations             # Check NAT operation
-ping 8.8.8.8 source 192.168.20.10    # Test guest internet access
-traceroute 8.8.8.8                   # Check routing path
+traceroute 1.1.1.1                   # Check routing path
+ping 1.1.1.1                         # Business and Guest VLAN test 
+
 ```
 
 ## **Protocol Deep Dive**
