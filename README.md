@@ -44,7 +44,7 @@
 ### **Focused Solutions Roadmap**
 | Project | Business Challenge | Core Technologies | Specialization Focus |
 |---------|-------------------|-------------------|---------------------|
-| 1. SOHO Network | Secure remote work environment | VLANs, Wireless, Basic Security | Fundamentals & Segmentation |
+| 1. SOHO Network | Secure remote work environment | VLANs, ACLs, Router-on-a-stick, Multi-SSID | Business Security & Client Segmentation |
 | 2. Hotel Network | Multi-service quality management | QoS, Multi-SSID, Bandwidth Mgmt | Service Quality & User Experience |
 | 3. Internet Cafe | Traffic prioritization for diverse users | Advanced QoS, Traffic Shaping | Public Access & Traffic Management |
 | 4. Manufacturing Plant | OT/IT security convergence | Security Zoning, VLAN Segmentation | Industrial IoT & OT Security |
@@ -114,7 +114,7 @@ Services:
 ### **Implementation Progress**
 | Project | Status | Business Focus |
 |---------|--------|----------------|
-| 01. SOHO Network | Testing | Secure Remote Work Infrastructure |
+| 01. SOHO Network | Testing | Securing Business-Client Isolation Infrastructure |
 | 02. Hotel Network | Planned | Multi-Service Quality Management |
 | 03. Internet Cafe | Planned | Public Access & Traffic Management |
 | 04. Manufacturing Plant | Planned | Industrial Security Integration |
