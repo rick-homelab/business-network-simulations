@@ -15,10 +15,11 @@ show access-lists
 ```
 
 ## 📸 Proof of Implementation
+**Security Validation**
 ![Security Validation](./assets/security-validation.png)
 *Guest devices completely isolated from business network - security policies actively blocking unauthorized access*  
 
-
+**Vlan Verification**
 ![VLAN Verification](./assets/vlan-verification.png)  
 *Multi-VLAN architecture properly configured with business (VLAN 10) and guest (VLAN 20) segmentation*  
 
