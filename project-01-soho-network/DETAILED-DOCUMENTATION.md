@@ -390,6 +390,6 @@ graph LR
 ---
 
 **Maintained by:** Sai Aik Kwan | **[Rick's Home Lab](https://github.com/username)**  
-*Found an issue? [Open a GitHub Issue](https://github.com/username/repo-name/issues)*
+*Found an issue? [Open a GitHub Issue](https://github.com/rick-homelab/rbusiness-network-simulations/issues)*
 
 *"Building networks that solve real business challenges with appropriate technical solutions."*
