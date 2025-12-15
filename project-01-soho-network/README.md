@@ -21,6 +21,8 @@ show access-lists
 ![VLAN Verification](./screenshots/vlan-verification.png)  
 *Multi-VLAN architecture properly configured with business (VLAN 10) and guest (VLAN 20) segmentation*
 
+**NOTE** : for some reasons, they are not added yet. 
+
 ## 🛠️ Technical Architecture
 ```mermaid
 graph TB
