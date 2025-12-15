@@ -61,14 +61,14 @@ graph TB
 - **Cost-Effective Design:** Appropriate technology selection for business scale
 
 ## 📁 Project Assets
-- `soho-network.pkt` - **Working Lab File** (Ready to demo)
-- `DETAILED-IMPLEMENTATION.md` - **Full Technical Documentation**
+- `project-01-soho-network.pkt` - **Working Lab File** (Ready to demo)
+- `DETAILED-DOCUMENTATION.md` - **Full Technical Documentation**
 
 ---
-**🔍 Deep Dive Available:** [View Detailed Implementation Guide](./DETAILED-IMPLEMENTATION.md)  
-**🚀 Hands-On Demo:** [Download Working Lab File](./soho-network.pkt)
+**🔍 Deep Dive Available:** [View Detailed Implementation Guide](./DETAILED-DOCUMENTATION.md)  
+**🚀 Hands-On Demo:** [Download Working Lab File](./project-01-soho-network.pkt)
 
 ---
-**Maintained by:** Sai Aik Kwan | **[Rick's Home Lab](https://github.com/username)**  
+**Maintained by:** Sai Aik Kwan | **[Rick's Home Lab](https://github.com/rick-homelab)**  
 
 *"Building networks that solve real business challenges with appropriate technical solutions."*
