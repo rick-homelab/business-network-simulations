@@ -18,8 +18,11 @@ show access-lists
 ![Security Validation](./assets/security-validation.png)
 *Guest devices completely isolated from business network - security policies actively blocking unauthorized access*
 
+
 ![VLAN Verification](./assets/vlan-verification.png)  
 *Multi-VLAN architecture properly configured with business (VLAN 10) and guest (VLAN 20) segmentation*
+
+
 
 ## 🛠️ Technical Architecture
 ```mermaid
