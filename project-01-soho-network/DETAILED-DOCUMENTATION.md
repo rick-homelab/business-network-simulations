@@ -1,6 +1,6 @@
 # **Project 01: SOHO Network - Secure Small Office Implementation**
 
-**Status:** In Progress 🟡 | **Last Updated:** 2025-11-03
+**Status:** In Progress 🟡 | **Last Updated:** 2025-12-15  
 
 ## **Table of Contents**
 - [Objective](#objective)
