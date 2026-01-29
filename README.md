@@ -10,6 +10,7 @@
 - [Technology Stack](#technology-stack)
 - [Implementation Approach](#implementation-approach)
 - [Project Index](#project-index)
+- [Author & Ownership](#author---ownership)
 
 ## **Portfolio Overview**
 > A focused portfolio of network solutions demonstrating expertise across diverse business environments, from SMB (Small and Medium-sized Business) infrastructure to enterprise-scale designs.
@@ -124,6 +125,8 @@ Services:
 | 08. Corporate Headquarters | Planned | Business Critical Infrastructure |
 
 ---
+
+#**Author & Ownership**
 
 **Maintained by:** **[Sai Aik Kwan](https://www.linkedin.com/in/sai-aik-kwan-251b62396/)** | **[Rick's Home Lab](https://github.com/rick-homelab)**   
 *Demonstrating practical network engineering expertise through business-focused solutions.*
