@@ -10,7 +10,7 @@
 - [Technology Stack](#technology-stack)
 - [Implementation Approach](#implementation-approach)
 - [Project Index](#project-index)
-- [Author & Ownership](#author---ownership)
+- [Author & Ownership](#author--ownership)
 
 ## **Portfolio Overview**
 > A focused portfolio of network solutions demonstrating expertise across diverse business environments, from SMB (Small and Medium-sized Business) infrastructure to enterprise-scale designs.
